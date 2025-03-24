@@ -9,3 +9,5 @@
 - Removed from the base repo. No clue where this goes? look into auto client gens.
 * github.com/cosmos/ibc-go/v8/modules/core/02-client/client
 - Removed from the base repo. No clue where this goes? look into auto client gens.
+* github.com/cosmos/cosmos-sdk/snapshots
+* Removed from the base repo. No clue where this goes? Think it's deprecated?
