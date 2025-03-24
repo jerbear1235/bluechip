@@ -11,3 +11,5 @@
 - Removed from the base repo. No clue where this goes? look into auto client gens.
 * github.com/cosmos/cosmos-sdk/snapshots
 * Removed from the base repo. No clue where this goes? Think it's deprecated?
+* cosmossdk.io/api
+- Reverted from v0.8 to v0.7. Because they wanted to deprecate cosmos-sdk/module/crisis but it is still used by wasmd.
