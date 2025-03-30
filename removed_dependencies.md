@@ -13,3 +13,6 @@
 * Removed from the base repo. No clue where this goes? Think it's deprecated?
 * cosmossdk.io/api
 - Reverted from v0.8 to v0.7. Because they wanted to deprecate cosmos-sdk/module/crisis but it is still used by wasmd.
+* x/pageinflation/keeper/msg_server_creator_pool_mint
+- Deleted the truncation of int. Maybe this is not needed at all?
+- Added missing app modules. see todos there. How do we fix it? (Note: Use the new ignite app to check how they define modules?)

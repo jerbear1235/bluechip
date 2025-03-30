@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"cosmossdk.io/math"
 	"github.com/BlueChip23/bluechip/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,7 +29,10 @@ func Migrate(
 	cdc.MustUnmarshal(b, &minter)
 
 	// Calculate target supply
-	minter.TargetSupply = minter.AnnualProvisions.Add(minter.AnnualProvisions.Quo(minter.Inflation)).TruncateInt()
+	quo, _ := minter.AnnualProvisions.Quo(minter.Inflation)
+	res, _ := minter.AnnualProvisions.Add(quo)
+	intVal, _ := res.Int64()
+	minter.TargetSupply = math.NewInt(intVal)
 
 	// Save new minter
 	bz := cdc.MustMarshal(&minter)

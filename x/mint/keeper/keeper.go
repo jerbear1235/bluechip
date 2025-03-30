@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 
+	"cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/BlueChip23/bluechip/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -89,19 +90,19 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 
 // StakingTokenSupply implements an alias call to the underlying staking keeper's
 // StakingTokenSupply to be used in BeginBlocker.
-func (k Keeper) StakingTokenSupply(ctx sdk.Context) sdk.Int {
+func (k Keeper) StakingTokenSupply(ctx sdk.Context) math.Int {
 	return k.stakingKeeper.StakingTokenSupply(ctx)
 }
 
 // TokenSupply implements an alias call to the underlying bank keeper's
 // TokenSupply to be used in BeginBlocker.
-func (k Keeper) TokenSupply(ctx sdk.Context, denom string) sdk.Int {
+func (k Keeper) TokenSupply(ctx sdk.Context, denom string) math.Int {
 	return k.bankKeeper.GetSupply(ctx, denom).Amount
 }
 
 // BondedRatio implements an alias call to the underlying staking keeper's
 // BondedRatio to be used in BeginBlocker.
-func (k Keeper) BondedRatio(ctx sdk.Context) sdk.Dec {
+func (k Keeper) BondedRatio(ctx sdk.Context) math.Dec {
 	return k.stakingKeeper.BondedRatio(ctx)
 }
 

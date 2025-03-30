@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
+	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	dbm "github.com/cometbft/cometbft-db"
 	tmcli "github.com/cometbft/cometbft/libs/cli"
-	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
