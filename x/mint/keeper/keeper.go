@@ -90,7 +90,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 
 // StakingTokenSupply implements an alias call to the underlying staking keeper's
 // StakingTokenSupply to be used in BeginBlocker.
-func (k Keeper) StakingTokenSupply(ctx sdk.Context) math.Int {
+func (k Keeper) StakingTokenSupply(ctx sdk.Context) (math.Int, error) {
 	return k.stakingKeeper.StakingTokenSupply(ctx)
 }
 
@@ -102,7 +102,7 @@ func (k Keeper) TokenSupply(ctx sdk.Context, denom string) math.Int {
 
 // BondedRatio implements an alias call to the underlying staking keeper's
 // BondedRatio to be used in BeginBlocker.
-func (k Keeper) BondedRatio(ctx sdk.Context) math.Dec {
+func (k Keeper) BondedRatio(ctx sdk.Context) (math.LegacyDec, error) {
 	return k.stakingKeeper.BondedRatio(ctx)
 }
 
