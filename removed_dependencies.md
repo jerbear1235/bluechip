@@ -46,3 +46,9 @@
 * Every address type changed to a byte array instead of string. So i updated types to convert to byte array
 * KVStoreReversePrefixIterator doesn't exist in the sdk. where does this go now??
 * applyAllowedAddrs removed but it will come back.
+- "cmd/bluechip/root.go
+* initRootcmd - Added address codec to collectGenTxsCmd??? added migrationMap???? added address codec to GenTxCmd??? config.CMD is gone????
+* queryCommand -> AddCommand all of the authcmd,rpc,bankcli, distcli, stakingcli commands were removed??
+* stakingcli.GetCmdQueryDelegation no longer exists??????
+* txCommand -> AddCommand, Added nil to a lot of tx cmds.  Where do we get address codecs??
+* newApp -> sdk.MultiStorePersistentCache removed ffrom types

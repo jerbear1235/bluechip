@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"cosmossdk.io/store"
 	dbm "github.com/cometbft/cometbft-db"
 	tmcli "github.com/cometbft/cometbft/libs/cli"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -175,17 +174,21 @@ func overwriteFlagDefaults(c *cobra.Command, defaults map[string]string) {
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	gentxModule := app.ModuleBasics[genutiltypes.ModuleName].(genutil.AppModuleBasic)
+	// TODO: Root command added address codec to CollectGenTxsCmd which is nil right now
+	// TODO: Root command added migrationMap to MigrateGenesisCmd. Who knows??
+	// TODO: Root command added address codec to GenTxCmd. What is this?
+	// TODO: config.Cmd() doesn't exist anymore??
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, gentxModule.GenTxValidator),
-		genutilcli.MigrateGenesisCmd(),
-		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, gentxModule.GenTxValidator, nil),
+		genutilcli.MigrateGenesisCmd(nil),
+		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, nil),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		AddGenesisAccountCmd(app.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		// testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}),
 		debug.Cmd(),
-		config.Cmd(),
+		// config.Cmd(),
 	)
 
 	ac := appCreator{
@@ -221,20 +224,21 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		authcmd.GetAccountCmd(),
+		//TODO: ALL OF THESE NO LONGER EXIST?????
+		//authcmd.GetAccountCmd(),
 		rpc.ValidatorCommand(),
-		rpc.BlockCommand(),
+		//rpc.BlockCommand(),
 		authcmd.QueryTxsByEventsCmd(),
 		authcmd.QueryTxCmd(),
-		bankcli.GetBalancesCmd(),                         // Query the total balance of an account or of a specific denomination.
-		bankcli.GetCmdQueryTotalSupply(),                 // Query total supply of tokens that are held by accounts
-		distcli.GetCmdQueryDelegatorRewards(),            // Query all rewards earned by a delegator, optionally restrict to rewards from a single validator
-		distcli.GetCmdQueryValidatorSlashes(),            // Query all slashes of a validator for a given block range
-		distcli.GetCmdQueryValidatorOutstandingRewards(), // Query distribution outstanding (un-withdrawn) rewards for a validator and all their delegations.
-		distcli.GetCmdQueryValidatorCommission(),         // Query distribution validator commission
-		stakingcli.GetCmdQueryValidator(),                // Query a validator by validator address
-		stakingcli.GetCmdQueryValidators(),               // Query all validators
-		stakingcli.GetCmdQueryValidatorDelegations(),     // Query all delegations to one validator
+		// bankcli.GetBalancesCmd(),                         // Query the total balance of an account or of a specific denomination.
+		// bankcli.GetCmdQueryTotalSupply(),                 // Query total supply of tokens that are held by accounts
+		// distcli.GetCmdQueryDelegatorRewards(),            // Query all rewards earned by a delegator, optionally restrict to rewards from a single validator
+		// distcli.GetCmdQueryValidatorSlashes(),            // Query all slashes of a validator for a given block range
+		// distcli.GetCmdQueryValidatorOutstandingRewards(), // Query distribution outstanding (un-withdrawn) rewards for a validator and all their delegations.
+		// distcli.GetCmdQueryValidatorCommission(),         // Query distribution validator commission
+		// stakingcli.GetCmdQueryValidator(),                // Query a validator by validator address
+		// stakingcli.GetCmdQueryValidators(),               // Query all validators
+		// stakingcli.GetCmdQueryValidatorDelegations(),     // Query all delegations to one validator
 	)
 
 	app.ModuleBasics.AddQueryCommands(cmd)
@@ -252,6 +256,7 @@ func txCommand() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
+	//TODO: Find out what address codecs are to add here?
 	cmd.AddCommand(
 		authcmd.GetSignCommand(),
 		authcmd.GetSignBatchCommand(),
@@ -262,16 +267,16 @@ func txCommand() *cobra.Command {
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
-		stakingcli.NewCreateValidatorCmd(), // Create Validator
-		distcli.NewWithdrawRewardsCmd(),    // Withdraw Rewards from Your Validator Address
-		stakingcli.NewDelegateCmd(),        // Staking Coins
-		stakingcli.GetCmdQueryDelegation(), // Query a Delegation
-		bankcli.NewSendTxCmd(),             // Send tokens to another address
-		distcli.NewWithdrawAllRewardsCmd(), // Withdraw all rewards for a single delegator.
-		stakingcli.NewEditValidatorCmd(),   // Edit an existing validator's settings, such as commission rate, name, etc.
-		stakingcli.NewDelegateCmd(),        // Delegate tokens to a validator
-		stakingcli.NewUnbondCmd(),          // Unbond tokens from a validator
-		stakingcli.NewRedelegateCmd(),      // Redelegate some tokens to another validator
+		stakingcli.NewCreateValidatorCmd(nil), // Create Validator
+		distcli.NewWithdrawRewardsCmd(nil, nil),    // Withdraw Rewards from Your Validator Address
+		stakingcli.NewDelegateCmd(nil, nil),        // Staking Coins
+		//TODO: REMOVED stakingcli.GetCmdQueryDelegation(), // Query a Delegation
+		bankcli.NewSendTxCmd(nil),             // Send tokens to another address
+		distcli.NewWithdrawAllRewardsCmd(nil, nil), // Withdraw all rewards for a single delegator.
+		stakingcli.NewEditValidatorCmd(nil),   // Edit an existing validator's settings, such as commission rate, name, etc.
+		stakingcli.NewDelegateCmd(nil, nil),        // Delegate tokens to a validator
+		stakingcli.NewUnbondCmd(nil, nil),          // Unbond tokens from a validator
+		stakingcli.NewRedelegateCmd(nil, nil),      // Redelegate some tokens to another validator
 	)
 
 	app.ModuleBasics.AddTxCommands(cmd)
@@ -281,7 +286,9 @@ func txCommand() *cobra.Command {
 }
 
 func keyCommand() *cobra.Command {
-	cmd := keys.Commands(app.DefaultNodeHome)
+	// TODO: Node name got removed?
+	cmd := keys.Commands()
+	// cmd := keys.Commands(app.DefaultNodeHome)
 	cmd.AddCommand(
 		keys.AddKeyCommand(),    // Create New Keys for Validator
 		keys.ShowKeysCmd(),      // Query the Keystore for Your Public Address
@@ -384,10 +391,11 @@ func (ac appCreator) newApp(
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
-	var cache sdk.MultiStorePersistentCache
+	// TODO: Cache is gone?
+	// var cache sdk.MultiStorePersistentCache
 
 	if cast.ToBool(appOpts.Get(server.FlagInterBlockCache)) {
-		cache = store.NewCommitKVStoreCacheManager()
+		//cache = store.NewCommitKVStoreCacheManager()
 	}
 
 	skipUpgradeHeights := make(map[int64]bool)
@@ -417,6 +425,7 @@ func (ac appCreator) newApp(
 		wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
 	}
 
+	// TODO: Who knows. don't look at this right now
 	return app.New(logger, db, traceStore, true, skipUpgradeHeights,
 		cast.ToString(appOpts.Get(flags.FlagHome)),
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
