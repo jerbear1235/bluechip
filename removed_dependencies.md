@@ -40,3 +40,9 @@
 * BeginBlockers magically disappeared as well.
 * app.UpgradeKeeper.SetUpgradeHandler type problem but when it's an anonymous function it's hard to tell
 * RegisterNodeService added a new config to the parameters. no clue what it is
+- "app/export.go"
+* , tmproto.Header{Height: app.LastBlockHeight()} removed?? from new app context
+* DistrKeeper - GetFeePool Disappeared!!
+* Every address type changed to a byte array instead of string. So i updated types to convert to byte array
+* KVStoreReversePrefixIterator doesn't exist in the sdk. where does this go now??
+* applyAllowedAddrs removed but it will come back.
