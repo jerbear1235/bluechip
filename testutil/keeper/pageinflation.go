@@ -18,7 +18,7 @@ import (
 )
 
 func PageinflationKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
-	storeKey := store.NewKVStoreKey(types.StoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
 
 	db := tmdb.NewMemDB()

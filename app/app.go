@@ -188,8 +188,8 @@ func GetEnabledProposals() []string {
 	return []string{}
 }
 
-func GetWasmOpts(appOpts servertypes.AppOptions) []wasm.Option {
-	var wasmOpts []wasm.Option
+func GetWasmOpts(appOpts servertypes.AppOptions) []wasmkeeper.Option {
+	var wasmOpts []wasmkeeper.Option
 	if cast.ToBool(appOpts.Get("telemetry.enabled")) {
 		wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
 	}
@@ -249,7 +249,7 @@ var (
 		govtypes.ModuleName:                 {authtypes.Burner},
 		ibctransfertypes.ModuleName:         {authtypes.Minter, authtypes.Burner},
 		icatypes.ModuleName:                 nil,
-		wasm.ModuleName:                     {authtypes.Burner},
+		wasmmoduletypes.ModuleName:          {authtypes.Burner},
 		pageinflationmoduletypes.ModuleName: {authtypes.Minter},
 	}
 )
@@ -302,7 +302,7 @@ type App struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
-	wasmKeeper          wasm.Keeper
+	wasmKeeper          wasmkeeper.Keeper
 	scopedWasmKeeper    capabilitykeeper.ScopedKeeper
 	PageinflationKeeper pageinflationmodulekeeper.Keeper
 
@@ -323,7 +323,7 @@ func New(
 	encodingConfig encparams.EncodingConfig,
 	//TODO: Deprecated enabledProposals []wasm.ProposalType,
 	appOpts servertypes.AppOptions,
-	wasmOpts []wasm.Option,
+	wasmOpts []wasmkeeper.Option,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
 	appCodec := encodingConfig.Marshaler
@@ -341,7 +341,7 @@ func New(
 		govtypes.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 		feegrant.StoreKey, icahosttypes.StoreKey, icacontrollertypes.StoreKey,
-		wasm.StoreKey,
+		wasmmoduletypes.StoreKey,
 		consensusparamtypes.StoreKey,
 		pageinflationmoduletypes.StoreKey,
 	)
@@ -374,7 +374,7 @@ func New(
 	scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/scopedKeeper
-	scopedWasmKeeper := app.CapabilityKeeper.ScopeToModule(wasm.ModuleName)
+	scopedWasmKeeper := app.CapabilityKeeper.ScopeToModule(wasmmoduletypes.ModuleName)
 	
 	// add keepers
 	
@@ -521,30 +521,34 @@ func New(
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 	wasmDir := filepath.Join(homePath, "data")
 
-	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
+	wasmConfig, err := wasm.ReadNodeConfig(appOpts)
 	if err != nil {
 		panic("error while reading wasm config: " + err.Error())
 	}
 
 	// The last arguments can contain custom message handlers, and custom query handlers,
 	// if we want to allow any custom callbacks
-	supportedFeatures := "iterator,staking,stargate"
-	app.wasmKeeper = wasm.NewKeeper(
+	supportedFeatures := []string{"iterator","staking","stargate"}
+	// TODO: SEE IF THIS IS RIGHT
+	wasmLimits := app.wasmKeeper.GetWasmLimits()
+	app.wasmKeeper = wasmkeeper.NewKeeper(
 		appCodec,
-		keys[wasm.StoreKey],
+		runtime.NewKVStoreService(keys[wasmmoduletypes.StoreKey]),
 		app.AccountKeeper,
 		app.BankKeeper,
 		app.StakingKeeper,
 		distrkeeper.NewQuerier(app.DistrKeeper),
-		app.IBCKeeper.ChannelKeeper,
+		// TODO: Investigate the new IBCKeeper
 		app.IBCKeeper.ChannelKeeper,
 		&app.IBCKeeper.PortKeeper,
-		scopedWasmKeeper,
 		app.TransferKeeper,
 		app.MsgServiceRouter(),
 		app.GRPCQueryRouter(),
 		wasmDir,
 		wasmConfig,
+		wasmmoduletypes.VMConfig{
+			WasmLimits: wasmLimits,
+		},
 		supportedFeatures,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		wasmOpts...,
@@ -571,8 +575,8 @@ func New(
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferIBCModule).
-	//TODO: Classic wasm changing routes for every item
-		//AddRoute(wasm.ModuleName, wasm.NewIBCHandler(app.wasmKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper)).
+	//TODO: Classic wasm changing routes for every item. Investigate the new IBC Module
+		AddRoute(wasmmoduletypes.ModuleName, wasm.NewIBCHandler(app.wasmKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper)).
 		AddRoute(icahosttypes.SubModuleName, icaHostIBCModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -641,7 +645,7 @@ func New(
 		ibcexported.ModuleName,
 		ibctransfertypes.ModuleName,
 		icatypes.ModuleName,
-		wasm.ModuleName,
+		wasmmoduletypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		pageinflationmoduletypes.ModuleName,
 	)
@@ -698,7 +702,7 @@ func New(
 		consensusparamtypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		icatypes.ModuleName,
-		wasm.ModuleName,
+		wasmmoduletypes.ModuleName,
 	)
 
 	app.mm.RegisterServices(cfg)
@@ -720,7 +724,7 @@ func New(
 				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 			},
 			IBCKeeper:         app.IBCKeeper,
-			TxCounterStoreKey: runtime.NewKVStoreService(keys[wasm.StoreKey]),
+			TxCounterStoreKey: runtime.NewKVStoreService(keys[wasmmoduletypes.StoreKey]),
 			WasmConfig:        wasmConfig,
 			Cdc:               appCodec,
 		},
@@ -953,7 +957,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibcexported.ModuleName)
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
-	paramsKeeper.Subspace(wasm.ModuleName)
+	paramsKeeper.Subspace(wasmmoduletypes.ModuleName)
 	paramsKeeper.Subspace(pageinflationmoduletypes.ModuleName)
 	return paramsKeeper
 }

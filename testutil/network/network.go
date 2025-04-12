@@ -6,6 +6,7 @@ import (
 	"time"
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -17,7 +18,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/BlueChip23/bluechip/app"
-	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	cometbftrand "github.com/cometbft/cometbft/libs/rand"
 	"github.com/stretchr/testify/require"
@@ -65,7 +65,7 @@ func DefaultConfig() network.Config {
 				val.GetCtx().Logger, tmdb.NewMemDB(), nil, true, map[int64]bool{}, val.GetCtx().Config.RootDir, 0, encoding,
 				wasmtypes.EnableAllProposals,
 				appOptions,
-				[]wasm.Option{},
+				[]wasmkeeper.Option{},
 				baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.GetAppConfig().Pruning)),
 				baseapp.SetMinGasPrices(val.GetAppConfig().MinGasPrices),
 				baseapp.SetChainID(chainId),
